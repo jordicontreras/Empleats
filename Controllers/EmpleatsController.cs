@@ -21,23 +21,22 @@ namespace Empleats.Controllers
         }
 
         // GET: api/Empleats
-        /*
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Empleat>>> GetEmpleats()
         {
             return await _context.Empleats.ToListAsync();
         }
-        */
 
         // GET: api/Empleats
+        /*
         [HttpGet]
         public string GetEmpleats()
         {
             return "Hola mundo";
         }
+        */
 
         // GET: api/Empleats/5
-        /*
         [HttpGet("{id}")]
         public async Task<ActionResult<Empleat>> GetEmpleat(int id)
         {
@@ -50,20 +49,23 @@ namespace Empleats.Controllers
 
             return empleat;
         }
-        */
+        
 
         // GET: api/Empleats/Jordi
+        /*
         [HttpGet("{name}")]
         public string GetEmpleat(string name)
         {
             return "Hola " + name;
         }
+        */
 
         // PUT: api/Empleats/5
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutEmpleat(int id, Empleat empleat)
+        //To return empleat with the saved changes, I changed Task<IActionResult> to Task<ActionResult<Empleat>>
+        public async Task<ActionResult<Empleat>> PutEmpleat(int id, Empleat empleat)
         {
             if (id != empleat.ID)
             {
@@ -88,7 +90,7 @@ namespace Empleats.Controllers
                 }
             }
 
-            return NoContent();
+            return empleat; //NoContent();
         }
 
         // POST: api/Empleats
