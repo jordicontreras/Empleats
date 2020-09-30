@@ -23,6 +23,18 @@ namespace Empleats
         {
             services.AddDbContext<EmpleatsContext>(opt =>
                opt.UseInMemoryDatabase("EmpleatsList"));
+
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(
+                    builder =>
+                    {
+                        builder.AllowAnyOrigin()
+                               .AllowAnyMethod()
+                               .AllowAnyHeader();
+                    });
+            });
+
             services.AddControllers();
         }
 
@@ -41,6 +53,8 @@ namespace Empleats
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors();
 
             app.UseAuthorization();
 
