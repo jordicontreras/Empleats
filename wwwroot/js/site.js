@@ -1,5 +1,6 @@
 const uri = 'https://localhost:44325/api/empleats';
 let todos = [];
+var count=0;
 
 
 //Calls the function _displayemployees
@@ -10,44 +11,53 @@ function getEmployees() {
     .catch(error => console.error('Unable to get employees.', error));
 }
 
-//Parses the introduced data and calls the API POST method
+
+//Function that adds a new employee
 function addEmployee() {
+  //We save in constats the values introduced in the form by the user
   const addNameTextbox = document.getElementById('add-name');
   const addSurnameTextbox = document.getElementById('add-surname');
   const addSalaryTextbox = document.getElementById('add-salary');
   const addRoleTextbox = document.getElementById('add-role');
 
-  const employee = {
+  //We create the array employeeAdd with the data introduced in the form by the user
+  const employeeAdd = {
     name: addNameTextbox.value.trim(),
     surname:addSurnameTextbox.value.trim(),
     salary: parseInt(addSalaryTextbox.value.trim()),
     role: addRoleTextbox.value.trim()
   };
 
+  //Calls the API POST method
   fetch(uri, {
     method: 'POST',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify(employee)
+    body: JSON.stringify(employeeAdd)
   })
     .then(response => response.json())
     .then(() => {
-      getEmployees();
+      getEmployees();//Calls the get employees method to update the employees list
       addNameTextbox.value = '';
+      addSurnameTextbox.value = '';
+      addSalaryTextbox.value = '';
+      addRoleTextbox.value = '';
+
     })
     .catch(error => console.error('Unable to add employee.', error));
 }
 
-//Calls the API DELETE method
+//Call to the API DELETE method
 function deleteEmployee(id) {
   fetch(`${uri}/${id}`, {
     method: 'DELETE'
   })
-  .then(() => getEmployees())
+  .then(() => getEmployees())//Calls the get employees method to update the employees list
   .catch(error => console.error('Unable to delete employee.', error));
 }
+
 
 function displayEditForm(id) {
   const employee = todos.find(employee => employee.id === id);
@@ -58,80 +68,113 @@ function displayEditForm(id) {
   document.getElementById('editForm').style.display = 'block';
 }
 
-function updateemployee() {
-  const employeeId = document.getElementById('edit-id').value;
-  const employee = {
-    id: parseInt(employeeId, 10),
-    isComplete: document.getElementById('edit-isComplete').checked,
-    name: document.getElementById('edit-name').value.trim()
+//Function that updates the employee
+function updateEmployee(employeeId) {
+  count++
+  //We create the array employeeUpdate with the data introduced in the form by the user
+  const employeeUpdate = {
+    id: employeeId,
+    name: document.getElementById('editFormName').value.trim(),
+    surname: document.getElementById('editFormSurname').value.trim(),
+    role: document.getElementById('editFormRole').value.trim(),
+    salary: parseInt(document.getElementById('editFormSalary').value.trim())
   };
-
+  console.log("entramos en updateEmployee")
+  console.log("employeeId is:"+employeeId)
+  //Call to the API PUT method to update the employee data
   fetch(`${uri}/${employeeId}`, {
     method: 'PUT',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify(employee)
+    body: JSON.stringify(employeeUpdate)
   })
-  .then(() => getEmployees())
+  .then(() => getEmployees())//Calls the get employees method to update the employees list
   .catch(error => console.error('Unable to update employee.', error));
 
+  //Calls the function that hides the modal window
   closeInput();
+  employeeId=null;
 
   return false;
+ 
 }
 
+//Function to hide the modal form of updating employees(A different way to do it)
 function closeInput() {
-  document.getElementById('editForm').style.display = 'none';
+  document.getElementById('editModal').style.display = 'none';
 }
 
-function _displayCount(employeeCount) {
-  const name = (employeeCount === 1) ? 'to-do' : 'to-dos';
 
-  document.getElementById('counter').innerText = `${employeeCount} ${name}`;
-}
-
+//Function that displays the modal window to confirm the delete action
 function displayModalDelete(employeeId){
-  //alert(employeeId);
-  //$("#deleteModal").modal().val(employeeId);
 
-  $('#deleteModal').modal().on('show.bs.modal', function(e) {
-    //$('#idHolder').html( employeeId );
-    //var Id = $(e.relatedTarget).data(employeeId);
-    //$(e.relatedTarget).find('input[name="employeeTextbox"]').val(employeeId);
+  //Shows the delete confirmation modal window
+  $('#deleteModal').modal().on('show.bs.modal');
+
+  //If the user confirmes delete calls the delete function
+  $("[data-modal-action=yes]").click(function () {
+    deleteEmployee(employeeId)  //calling delete method
+    //Hides the delete confirmation modal window
+    $("#deleteModal").modal("hide");
   });
 
-  $("[data-modal-action=yes]").click(function () {
-    //call the delete ajax method 
-    //awardid= 45
-   deleteEmployee(employeeId)  //calling delete method
-  $("#deleteModal").modal("hide");
+}
+
+//Function that displays the modal window form for editing an employee
+function displayModalEdit(employeeId){
+
+  //Calls the API GET method to recover the data of the employee
+  fetch(`${uri}/${employeeId}`, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    //body: JSON.stringify(data)
+  })
+  .then(response => response.json())
+  .then(data => fillFormUpdate(data))
+
+  //Shows the modal window form for updating the employee
+  $('#editModal').modal().on('show.bs.modal');  
+
+  //If the user clicks Save calls the updateEmployee function
+  $("[data-modal-action=save]").click(function () {
+    //Calls updateEmployee method
+    updateEmployee(employeeId);  
+    //Hides the modal window
+    $("#editModal").modal("hide");
   });
 }
 
+
+// Fills the input boxes with the data we got from the GET request
+function fillFormUpdate(data){
+
+    document.getElementById('editFormName').value = data.name;
+    document.getElementById('editFormSurname').value = data.surname;
+    document.getElementById('editFormRole').value = data.role;
+    document.getElementById('editFormSalary').value = data.salary;
+
+  }
 
 
 function _displayEmployees(data) {
-  //alert("display");
+
   const tBody = document.getElementById('todos');
   tBody.innerHTML = '';
-
-  _displayCount(data.length);
 
   const button = document.createElement('button');
 
   data.forEach(employee => {
-    let isCompleteCheckbox = document.createElement('input');
-    isCompleteCheckbox.type = 'checkbox';
-    isCompleteCheckbox.disabled = true;
-    isCompleteCheckbox.checked = employee.isComplete;
 
     let editButton = button.cloneNode(false);
     editButton.innerText = 'Edit';
     editButton.setAttribute('class', 'btn btn-primary')
     editButton.setAttribute('data-toogle', 'modal')
-    editButton.setAttribute('data-target', '#exampleModal')
+    editButton.setAttribute('data-target', '#editModal')
     editButton.setAttribute('onclick', `displayModalEdit(${employee.id})`);
     //editButton.setAttribute('onclick', `displayEditForm(${employee.id})`);
 
@@ -139,7 +182,7 @@ function _displayEmployees(data) {
     deleteButton.innerText = 'Delete';
     deleteButton.setAttribute('class', 'btn btn-primary')
     deleteButton.setAttribute('data-toogle', 'modal')
-    deleteButton.setAttribute('data-target', '#exampleModal')
+    deleteButton.setAttribute('data-target', '#deleteModal')
     deleteButton.setAttribute('onclick', `displayModalDelete(${employee.id})`);
     //deleteButton.setAttribute('onclick', `deleteEmployee(${employee.id})`);
 
